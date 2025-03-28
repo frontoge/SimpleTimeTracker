@@ -32,15 +32,24 @@ std::string Project::getName()
     return this->name;
 }
 
-void Project::startLogging()
+void Project::startTimer()
 {
+    if (this->status) {
+        return;
+    }
+    this->status = true;
     startTime = std::chrono::system_clock::now();
 }
 
-void Project::stopLogging()
+void Project::stopTimer()
 {
+    if (!this->status) {
+        return;
+    }
+    
     auto stopTime = std::chrono::system_clock::now();
     const auto difference =  stopTime - startTime;
     this->minutes = std::chrono::duration_cast<std::chrono::minutes>(difference + this->minutes);
     std::cout << minutes.count() << "\n";
+    this->status = false;
 }
