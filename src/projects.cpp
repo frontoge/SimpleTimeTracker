@@ -22,18 +22,19 @@ void Project::setName(const std::string& value)
     this->name = value;
 }
 
-float Project::getMinutes()
+float Project::getMinutes() const
 {
     return this->minutes.count() / 60.0f;
 }
 
-std::string Project::getName()
+std::string Project::getName() const
 {
     return this->name;
 }
 
 void Project::startTimer()
 {
+    std::cout << "Starting Timer\n";
     if (this->status) {
         return;
     }
@@ -46,7 +47,7 @@ void Project::stopTimer()
     if (!this->status) {
         return;
     }
-    
+
     auto stopTime = std::chrono::system_clock::now();
     const auto difference =  stopTime - startTime;
     this->minutes = std::chrono::duration_cast<std::chrono::minutes>(difference + this->minutes);

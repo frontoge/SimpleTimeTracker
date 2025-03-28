@@ -27,14 +27,14 @@ class Project
          * 
          * @return float The number of minutes spent on this project.
          */
-        float getMinutes();
+        float getMinutes() const;
 
         /**
          * @brief Get the Name of the project
          * 
          * @return std::string - The name of the project
          */
-        std::string getName();
+        std::string getName() const;
 
 
         /**
