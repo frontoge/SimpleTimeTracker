@@ -1,3 +1,4 @@
 build/
 docs/
+vcpkg_installed/
 .vscode/
