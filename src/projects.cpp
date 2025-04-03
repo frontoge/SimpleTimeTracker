@@ -21,7 +21,7 @@ Project::Project(const std::string& name)
 void Project::setName(const std::string& value)
 {
     this->name = value;
-}
+} 
 
 float Project::getMinutes() const
 {

@@ -3,6 +3,7 @@
 #include <vector>
 #include <project.hpp>
 #include <ostream>
+#include <boost/serialization/vector.hpp>
 
 class Manager 
 {
@@ -52,7 +53,28 @@ class Manager
          * @return false The index is invalid.
          */
         bool isValidIndex(int index) const;
+
+        /**
+         * @brief Saves the projects to a file.
+         * 
+         * @param filename - The name of the file to save to.
+         */
+        void saveProjects(const std::string& filename);
+
+        /**
+         * @brief Loads the projects from a file.
+         * 
+         * @param filename - The name of the file to load from.
+         */
+        void loadProjects(const std::string& filename);
         
     private:
         std::vector<Project*> projects;
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void serialize(Archive& ar, const unsigned int version)
+        {
+            ar & projects;
+        }
 };

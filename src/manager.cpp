@@ -27,7 +27,7 @@ void Manager::toggleProject(int index)
     if (index < 0 || index >= this->projects.size()) {
         return;
     }
-    std::cout << index << "\n";
+    
     auto& proj = this->projects.at(index);
     if (proj->getStatus()) {
         proj->stopTimer();
@@ -62,4 +62,14 @@ void Manager::stopAll()
 bool Manager::isValidIndex(int index) const
 {
     return index >= 0 && index < this->projects.size();
+}
+
+void Manager::saveProjects(const std::string& filename)
+{
+    
+}
+
+void Manager::loadProjects(const std::string& filename)
+{
+    
 }
