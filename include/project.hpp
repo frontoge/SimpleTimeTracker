@@ -2,7 +2,6 @@
 
 #include <string>
 #include <chrono>
-
 // Serialization
 // TODO rebuild the boost serialization lib and only build serialization (use --with-serialization)
 // This will give all headers required internally, right now dependencies are all fucked up.
@@ -33,7 +32,21 @@ class Project
          * 
          * @return float The number of minutes spent on this project.
          */
-        float getMinutes() const;
+        int getMinutes() const;
+
+        /**
+         * @brief Get the number of seconds spent on this project.
+         * 
+         * @return float The number of seconds spent on this project.
+         */
+        int getSeconds() const;
+
+        /**
+         * @brief Get the number of hours spent on this project.
+         * 
+         * @return float The number of hours spent on this project.
+         */
+        int getHours() const;
 
         /**
          * @brief Get the Name of the project
@@ -49,7 +62,7 @@ class Project
          * @return true - The timer is running.
          * @return false - The timer is not running.
          */
-        bool getStatus();
+        bool getStatus() const;
 
         /**
          * @brief Starts the timer for the given project.
@@ -71,7 +84,7 @@ class Project
         void save(Archive& ar, const unsigned int version) const
         {
             ar & name;
-            ar & minutes.count();
+            ar & seconds.count();
         }
 
         template<class Archive>
@@ -80,11 +93,11 @@ class Project
             ar & name;
             int minutesCount;
             ar & minutesCount;
-            minutes = std::chrono::minutes(static_cast<int>(minutesCount));
+            seconds = std::chrono::minutes(static_cast<int>(minutesCount));
         }
         BOOST_SERIALIZATION_SPLIT_MEMBER()
 
-        std::chrono::minutes minutes;
+        std::chrono::seconds seconds;
         std::string name;
         Timestamp startTime;
         bool status;

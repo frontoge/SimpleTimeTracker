@@ -7,15 +7,14 @@
 
 Project::Project()
 :Project("New Project")
-{
-    this->status = false;
-    this->minutes = std::chrono::minutes(0);
+{  
 }
 
 Project::Project(const std::string& name)
 :name(name)
 {
-    minutes = std::chrono::minutes(0);
+    this->status = false;
+    seconds = std::chrono::minutes(0);
 }
 
 void Project::setName(const std::string& value)
@@ -23,9 +22,19 @@ void Project::setName(const std::string& value)
     this->name = value;
 } 
 
-float Project::getMinutes() const
+int Project::getHours() const
 {
-    return this->minutes.count();
+    return this->seconds.count() / 3600;
+}
+
+int Project::getMinutes() const
+{
+    return this->seconds.count() / 60 - (this->getHours() * 60);
+}
+
+int Project::getSeconds() const
+{
+    return this->seconds.count() - (this->getMinutes() * 60);
 }
 
 std::string Project::getName() const
@@ -33,7 +42,7 @@ std::string Project::getName() const
     return this->name;
 }
 
-bool Project::getStatus()
+bool Project::getStatus() const
 {
     return this->status;
 }
@@ -58,6 +67,6 @@ void Project::stopTimer()
 
     auto stopTime = std::chrono::system_clock::now();
     const auto difference =  stopTime - startTime;
-    this->minutes = std::chrono::duration_cast<std::chrono::minutes>(difference + this->minutes);
+    this->seconds = std::chrono::duration_cast<std::chrono::seconds>(difference + this->seconds);
     this->status = false;
 }

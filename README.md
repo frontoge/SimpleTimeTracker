@@ -2,7 +2,7 @@
 This is a simple cross platform tool that allows for time tracking of projects. Currently this is only a CLI tool.
 
 # Upcoming Features
-- Loading and saving to custom files
+- Deleting projects
 - Categorizing Projects
 - Windows Makefile
 - GUI

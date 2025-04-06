@@ -1,9 +1,20 @@
 #include <manager.hpp>
 #include <iostream>
+#include <filesystem>
+#include <fstream>
+
+namespace fs = std::filesystem;
+using Path = fs::path;
+
+bool isFilePresent(Path& filePath) {
+    return fs::exists(filePath) && fs::is_regular_file(filePath);
+}
 
 Manager::Manager()
 {
-    
+    saveDir = "data";
+    fileName = "projects.dat";
+    projects.push_back(new Project("New Project"));
 }
 
 Manager::~Manager()
@@ -64,12 +75,29 @@ bool Manager::isValidIndex(int index) const
     return index >= 0 && index < this->projects.size();
 }
 
-void Manager::saveProjects(const std::string& filename)
+void Manager::saveProjects()
 {
-    
+    Path savePath = fs::current_path() / saveDir / fileName;
+
+    // Create the save directory if it doesn't already exist
+    if (!fs::exists(fs::current_path() / saveDir)) {
+        fs::create_directory(saveDir);
+    }
+
+    std::ofstream ofs(savePath);
+    boost::archive::text_oarchive oa(ofs);
+    oa << *this;
+    ofs.close();
 }
 
-void Manager::loadProjects(const std::string& filename)
+void Manager::loadProjects()
 {
-    
+    Path savePath = fs::current_path() / saveDir / fileName;
+
+    if (isFilePresent(savePath)) {
+        std::ifstream ifs(savePath);
+        boost::archive::text_iarchive ia(ifs);
+        ia >> *this;
+        ifs.close();
+    }
 }

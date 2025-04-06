@@ -59,18 +59,44 @@ class Manager
          * 
          * @param filename - The name of the file to save to.
          */
-        void saveProjects(const std::string& filename);
+        void saveProjects();
 
         /**
          * @brief Loads the projects from a file.
          * 
          * @param filename - The name of the file to load from.
          */
-        void loadProjects(const std::string& filename);
+        void loadProjects();
+
+        /**
+         * @brief Gets the project at the given index.
+         * 
+         * @param index - The index of the project to get.
+         * @return Project* - The project at the given index.
+         */
+        const Project* getProject(int index) const
+        {
+            if (index < 0 || index >= static_cast<int>(projects.size())) {
+                return nullptr;
+            }
+            return projects[index];
+        }
+
+        /**
+         * @brief Gets the number of projects.
+         * 
+         * @return int - The number of projects.
+         */
+        const int getProjectCount() const
+        {
+            return static_cast<int>(projects.size());
+        }
         
     private:
         std::vector<Project*> projects;
         friend class boost::serialization::access;
+        std::string saveDir;
+        std::string fileName;
 
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version)

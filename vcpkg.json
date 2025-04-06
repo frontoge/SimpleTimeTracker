@@ -1,5 +1,8 @@
 {
   "dependencies": [
-    "boost-serialization"
+    "boost-serialization",
+    "glfw3",
+    "imgui",
+    "glew"
   ]
 }

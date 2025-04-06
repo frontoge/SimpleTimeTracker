@@ -3,3 +3,4 @@ docs/
 data/
 vcpkg_installed/
 .vscode/
+imgui.ini
