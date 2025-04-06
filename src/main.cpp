@@ -30,6 +30,9 @@ int main(int argc, char** argv)
     manager->stopAll();
 
     delete manager;
+
+    uiManager->cleanup();
+    
     delete uiManager;
     
     return 0;

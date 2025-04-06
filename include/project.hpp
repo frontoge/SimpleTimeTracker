@@ -8,15 +8,19 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp> 
 
+#include <thread>
+
+#include <imgui.h>
+
 using Clock = std::chrono::system_clock;
 using Timestamp = std::chrono::time_point<Clock>;
-
 
 class Project 
 {
     public:
         Project();
         Project(const std::string& name);
+        ~Project();
 
         //Mutators
         /**
@@ -77,6 +81,8 @@ class Project
         void stopTimer();
 
     private:
+        void updateTimer();
+
         // Serialization
         friend class boost::serialization::access; 
 
@@ -93,14 +99,16 @@ class Project
             ar & name;
             int minutesCount;
             ar & minutesCount;
-            seconds = std::chrono::minutes(static_cast<int>(minutesCount));
+            seconds = std::chrono::seconds(static_cast<int>(minutesCount));
         }
         BOOST_SERIALIZATION_SPLIT_MEMBER()
 
         std::chrono::seconds seconds;
         std::string name;
         Timestamp startTime;
+        std::thread* thread;
         bool status;
+        ImVec4 color;
 
 };
 
