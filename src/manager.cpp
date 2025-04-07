@@ -15,6 +15,7 @@ Manager::Manager()
     saveDir = "data";
     fileName = "projects.dat";
     projects.push_back(new Project("New Project"));
+    unsavedChanges = false;
 }
 
 Manager::~Manager()
@@ -45,11 +46,6 @@ void Manager::toggleProject(int index)
     } else {
         proj->startTimer();
     }
-}
-
-void Manager::addProject(const std::string& name)
-{
-    this->projects.push_back(new Project(name));
 }
 
 void Manager::deleteProject(int index)
@@ -88,6 +84,8 @@ void Manager::saveProjects()
     boost::archive::text_oarchive oa(ofs);
     oa << *this;
     ofs.close();
+
+    this->unsavedChanges = false;
 }
 
 void Manager::loadProjects()

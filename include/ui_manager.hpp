@@ -11,6 +11,19 @@
 
 #include <GLFW/glfw3.h>
 
+enum ModalState
+{
+    NONE,
+    EDIT,
+    CREATE
+};
+
+struct ModalData
+{
+    std::string name;
+    ImVec4 color;
+};
+
 class UIManager
 {
     public:
@@ -51,5 +64,21 @@ class UIManager
     private:
         Manager* manager;
         GLFWwindow* window;
-        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+        ImVec4 clear_color;
+        bool showEditCreateModal;
+        ModalData modalData;
+        ModalState modalState;
+        // Index of the project that is being used for modals
+        int modalProjectIndex;
+
+        void renderProject(int projectIndex);
+        void renderMenuBar();
+        void renderEditCreateModal(int projectIndex);
+        void resetModalState()
+        {
+            this->modalState = ModalState::NONE;
+            this->showEditCreateModal = false;
+            this->modalProjectIndex = -1;
+            this->modalData = {"New Project", ImVec4(1.0f, 0.0f, 0.0f, 1.0f)};
+        }
 };

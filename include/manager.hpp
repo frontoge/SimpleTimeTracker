@@ -26,11 +26,14 @@ class Manager
         void toggleProject(int index);
 
         /**
-         * @brief Creates a new project with name.
+         * @brief Creates a new project.
          * 
-         * @param name - The name of the project.
+         * @param project - The project to add.
          */
-        void addProject(const std::string& name);
+        void addProject(Project* project)
+        {
+            this->projects.push_back(project);
+        }
 
         /**
          * @brief Deletes a project.
@@ -74,7 +77,7 @@ class Manager
          * @param index - The index of the project to get.
          * @return Project* - The project at the given index.
          */
-        const Project* getProject(int index) const
+        Project* getProject(int index) const
         {
             if (index < 0 || index >= static_cast<int>(projects.size())) {
                 return nullptr;
@@ -91,12 +94,33 @@ class Manager
         {
             return static_cast<int>(projects.size());
         }
+
+        /**
+         * @brief Sets the manager to know there is unsaved changes.
+         * 
+         */
+        void markChanges()
+        {
+            this->unsavedChanges = true;
+        }
+
+        /**
+         * @brief Checks if there are unsaved changes.
+         * 
+         * @return true 
+         * @return false 
+         */
+        bool hasUnsavedChanges() const
+        {
+            return this->unsavedChanges;
+        }
         
     private:
         std::vector<Project*> projects;
         friend class boost::serialization::access;
         std::string saveDir;
         std::string fileName;
+        bool unsavedChanges;
 
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version)

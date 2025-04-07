@@ -1,13 +1,14 @@
 #include <ui_manager.hpp>
 #include <stdio.h>
-
-
+#include <imgui_stdlib.h>
+#include <iostream>
 
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+// Constructor and Destructor
 
 UIManager::UIManager()
 : manager(nullptr)
@@ -18,6 +19,11 @@ UIManager::UIManager(Manager* manager)
 {
     this->manager = manager;
     this->window = nullptr;
+    this->showEditCreateModal = false;
+    this->modalProjectIndex = -1;
+    this->modalData = {"New Project", ImVec4(1.0f, 0.0f, 0.0f, 1.0f)};
+    this->modalState = ModalState::NONE;
+    this->clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     // this->io = ImGui::GetIO();
 }
 
@@ -25,6 +31,8 @@ UIManager::~UIManager()
 {
     // Destructor implementation
 }
+
+// Init and cleanup
 
 bool UIManager::init()
 {
@@ -62,6 +70,156 @@ bool UIManager::init()
     return true;
 }
 
+void UIManager::cleanup()
+{
+    // ImGui cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(this->window);
+    glfwTerminate();
+}
+
+/***************
+    COMPONENTS
+****************/
+
+void UIManager::renderMenuBar()
+{
+    if (ImGui::BeginMenuBar()) 
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("New Project", "Ctrl+N"))
+            {
+                // Open new project dialog
+                this->modalState = ModalState::CREATE;
+                this->showEditCreateModal = true;
+                this->modalData = {"New Project", ImVec4(1.0f, 0.0f, 0.0f, 1.0f)};
+            }
+
+            if (ImGui::MenuItem("Save", "Ctrl+S"))
+            {
+                // Open save dialog
+                this->manager->saveProjects();
+            }
+            if (ImGui::MenuItem("Load", "Ctrl+L"))
+            {
+                // Open load dialog
+                this->manager->loadProjects();
+            }
+
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (ImGui::MenuItem("Edit Categories"))
+            {
+                // Open categories page
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
+    }
+}
+
+void UIManager::renderProject(int projectIndex)
+{
+    Project* project = this->manager->getProject(projectIndex);
+    const int t_hours = project->getHours() / 10;
+    const int hours = project-> getHours() % 10;
+    const int t_minutes = project->getMinutes() / 10;
+    const int minutes = project->getMinutes() % 10;
+    const int t_seconds = project->getSeconds() / 10;
+    const int seconds = project->getSeconds() % 10;
+
+    const std::string projId = "##" + std::to_string(projectIndex);
+
+    ImGui::TextColored(project->getColor(), "%s", project->getName().c_str());
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "%i%i:%i%i:%i%i",
+        t_hours, hours,
+        t_minutes, minutes,
+        t_seconds, seconds
+    );
+    ImGui::SameLine();
+    if (ImGui::Button( ((project->getStatus() ? "Stop" : "Start") + projId).c_str() ) )
+    {
+        // Start/stop the project
+        this->manager->toggleProject(projectIndex);
+        this->manager->markChanges();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(("Edit" + projId).c_str()))
+    {
+        // Open edit dialog
+        this->modalProjectIndex = projectIndex;
+        this->modalState = ModalState::EDIT;
+        this->showEditCreateModal = true;
+        this->modalData = {project->getName(), project->getColor()};
+    }
+}
+
+void UIManager::renderEditCreateModal(int projectIndex = -1)
+{
+    Project* project = projectIndex != -1 ? this->manager->getProject(projectIndex) : new Project();
+    const char* modalId = modalState == ModalState::EDIT ? "Edit Project" : "New Project";
+
+    ImGui::OpenPopup(modalId);
+    if (ImGui::BeginPopupModal(modalId, &showEditCreateModal, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        // Inputs
+        ImGui::InputText("Name", &modalData.name);
+        ImGui::ColorEdit4("Color", (float*)&modalData.color, ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoInputs);
+
+        ImGui::Separator();
+
+        // Action buttons
+        if (ImGui::Button("Save"))
+        {
+            project->setName(modalData.name);
+            project->setColor(modalData.color);
+
+            if (modalState == ModalState::CREATE)
+            {
+                this->manager->addProject(project);
+                this->manager->markChanges();
+            }
+
+            this->resetModalState();
+            ImGui::CloseCurrentPopup();
+
+        }
+
+        if (modalState == ModalState::EDIT)
+        {
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Red background
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.0f, 0.0f, 1.0f)); // Darker red on hover
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
+            if (ImGui::Button("Delete"))
+            {
+                this->manager->deleteProject(projectIndex);
+                this->manager->markChanges();
+                this->resetModalState();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::PopStyleColor(3); // Pop the three style colors we pushed
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel"))
+        {
+            this->resetModalState();
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+// Main render call
 void UIManager::render()
 {
     glfwPollEvents();
@@ -92,70 +250,40 @@ void UIManager::render()
     ImGui::Begin("Projects", &isOpen, window_flags);
 
     // Draw UI
-    if (ImGui::BeginMenuBar()) 
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Save", "Ctrl+S"))
-            {
-                // Open save dialog
-                this->manager->saveProjects();
-            }
-            if (ImGui::MenuItem("Load", "Ctrl+L"))
-            {
-                // Open load dialog
-            }
+    this->renderMenuBar();
 
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Edit Categories"))
-            {
-                // Open categories page
-            }
-            ImGui::EndMenu();
-        }
-        ImGui::EndMenuBar();
+    std::string text = "Projects";
+    if (this->manager->hasUnsavedChanges())
+    {
+        text += "*";
     }
 
-    ImGui::TextColored(ImVec4(0.247f, 0.831f, 0.922f, 1.0f), "Projects");
+    ImGui::TextColored(ImVec4(0.247f, 0.831f, 0.922f, 1.0f), text.c_str());
     ImGui::Separator();
     ImGui::BeginChild("Scrolling");
     for (int i = 0; i < this->manager->getProjectCount(); i++)
     {
-        const Project* proj = this->manager->getProject(i);
-        const int t_hours = proj->getHours() / 10;
-        const int hours = proj-> getHours() % 10;
-        const int t_minutes = proj->getMinutes() / 10;
-        const int minutes = proj->getMinutes() % 10;
-        const int t_seconds = proj->getSeconds() / 10;
-        const int seconds = proj->getSeconds() % 10;
-
-        ImGui::TextColored(ImVec4(0.247f, 0.831f, 0.922f, 1.0f), "%s", proj->getName().c_str());
-        ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "%i%i:%i%i:%i%i",
-            t_hours, hours,
-            t_minutes, minutes,
-            t_seconds, seconds
-        );
-        ImGui::SameLine();
-        if (ImGui::Button(proj->getStatus() ? "Stop" : "Start"))
-        {
-            this->manager->toggleProject(i);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Edit"))
-        {
-            // Open edit dialog
-        }
+        this->renderProject(i);
     }
+
     ImGui::EndChild();
 
     ImGui::End();
 
-    bool show_demo_window = true;
-    ImGui::ShowDemoWindow(&show_demo_window);
+    if (this->showEditCreateModal)
+    {
+        if (this->modalState == ModalState::CREATE)
+        {
+            this->renderEditCreateModal();
+        }
+        else if (this->modalState == ModalState::EDIT)
+        {
+            // Render the edit modal
+            this->renderEditCreateModal(this->modalProjectIndex);
+        }
+    }
+
+
 
     ImGui::Render();
 
@@ -169,15 +297,4 @@ void UIManager::render()
 
     glfwSwapBuffers(this->window);
 
-}
-
-void UIManager::cleanup()
-{
-    // ImGui cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwDestroyWindow(this->window);
-    glfwTerminate();
 }

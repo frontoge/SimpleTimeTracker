@@ -1,8 +1,6 @@
 #include <project.hpp>
 #include <chrono>
 
-#include <iostream>
-
 // using namespace std::chrono_literals;
 
 Project::Project()
@@ -15,6 +13,7 @@ Project::Project(const std::string& name)
 {
     this->status = false;
     seconds = std::chrono::minutes(0);
+    color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Project::~Project()
@@ -77,7 +76,6 @@ void Project::startTimer()
     if (this->status) {
         return;
     }
-    std::cout << "Starting Timer\n";
     this->status = true;
     startTime = std::chrono::system_clock::now();
     thread = new std::thread(&Project::updateTimer, this);
@@ -89,7 +87,6 @@ void Project::stopTimer()
         return;
     }
 
-    std::cout << "Stopping Timer\n";
     this->status = false;
     this->thread->join();
 

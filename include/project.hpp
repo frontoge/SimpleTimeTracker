@@ -80,6 +80,26 @@ class Project
          */
         void stopTimer();
 
+        /**
+         * @brief Get the color of the project
+         * 
+         * @return ImVec4 - The color of the project
+         */
+        const ImVec4& getColor() const
+        {
+            return color;
+        }
+
+        /**
+         * @brief Set the color of the project
+         * 
+         * @param value - The color to set.
+         */
+        void setColor(const ImVec4& value)
+        {
+            color = value;
+        }
+
     private:
         void updateTimer();
 
@@ -91,14 +111,17 @@ class Project
         {
             ar & name;
             ar & seconds.count();
+            ar & color.x & color.y & color.z & color.w;
         }
 
         template<class Archive>
         void load(Archive& ar, const unsigned int version) 
         {
-            ar & name;
             int minutesCount;
+
+            ar & name;
             ar & minutesCount;
+            ar & color.x & color.y & color.z & color.w;
             seconds = std::chrono::seconds(static_cast<int>(minutesCount));
         }
         BOOST_SERIALIZATION_SPLIT_MEMBER()
